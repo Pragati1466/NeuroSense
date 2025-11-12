@@ -17,8 +17,27 @@ An AI-powered mood journaling and wellness assistant that helps you track your e
 ### Prerequisites
 - Python 3.8+
 - pip (Python package manager)
-- Cohere API key (for AI responses)
-- YouTube Data API v3 key (for music recommendations)
+
+### API Keys (Choose one option for each)
+
+#### 1. AI Responses (Choose one):
+- **Option A: Cohere API** (Recommended)
+  - Get a free API key from [Cohere](https://cohere.com/)
+  - Free tier available with limited requests
+
+- **Option B: OpenAI API** (Alternative)
+  - Get a free API key from [OpenAI](https://platform.openai.com/)
+  - Free credits available for new users
+
+#### 2. Music Recommendations (Choose one):
+- **Option A: YouTube Data API v3** (Recommended)
+  - Enable YouTube Data API v3 in [Google Cloud Console](https://console.cloud.google.com/)
+  - Free tier provides 10,000 units/day (1 search ≈ 100 units)
+
+- **Option B: JioSaavn API** (Alternative, no key required)
+  - Free and open-source
+  - No API key needed
+  - Limited to Indian music content
 
 ### Installation
 
@@ -40,10 +59,15 @@ An AI-powered mood journaling and wellness assistant that helps you track your e
    ```
 
 4. **Set up environment variables**
-   Create a `.env` file in the `NeuroSense` directory with your API keys:
+   Create a `.env` file in the `NeuroSense` directory with your preferred API keys:
    ```
-   COHERE_API_KEY=your_cohere_api_key_here
-   YOUTUBE_API_KEY=your_youtube_api_key_here
+   # Choose one AI provider
+   COHERE_API_KEY=your_cohere_api_key_here  # For Cohere AI
+   # OPENAI_API_KEY=your_openai_api_key_here  # Uncomment for OpenAI
+   
+   # Choose one music provider
+   YOUTUBE_API_KEY=your_youtube_api_key_here  # For YouTube
+   # JIOSAAVN_ENABLED=True  # Uncomment to use JioSaavn (no API key needed)
    ```
 
 5. **Run the app**
@@ -86,12 +110,13 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 - [Streamlit](https://streamlit.io/) for the amazing framework
 - [Cohere](https://cohere.com/) for the AI text generation
+- [OpenAI](https://openai.com/) as an alternative AI provider
 - [YouTube Data API](https://developers.google.com/youtube/v3) for music recommendations
+- [JioSaavn](https://www.jiosaavn.com/) as a music recommendation alternative
 - All contributors who have helped shape this project
 
 ## 🌟 Support
 
 If you find this project helpful, please consider giving it a ⭐️ on GitHub!
 
----
-Built with ❤️ by Pragati
+

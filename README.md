@@ -94,4 +94,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 If you find this project helpful, please consider giving it a ⭐️ on GitHub!
 
 ---
-Built with ❤️ by [Your Name/Organization]
+Built with ❤️ by Pragati

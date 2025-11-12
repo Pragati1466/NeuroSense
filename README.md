@@ -1,6 +1,5 @@
-# NeuroSense 🌈
+# NeuroSense 
 
-[![Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://neuro-sense.streamlit.app/)
 
 An AI-powered mood journaling and wellness assistant that helps you track your emotions, get personalized music recommendations, and maintain a reflective journal - all in one place. Built with ❤️ using Streamlit.
 

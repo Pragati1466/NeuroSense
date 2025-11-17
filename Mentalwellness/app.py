@@ -1,16 +1,24 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+
+import streamlit as st
+if not COHERE_API_KEY or not YOUTUBE_API_KEY:
+    st.error("Missing API Keys. Please ensure your .env file contains both COHERE_API_KEY and YOUTUBE_API_KEY.")
+    st.stop()
+
 import streamlit as st
 import random
 import requests
 from googleapiclient.discovery import build
 
-load_dotenv() 
+# NEW IMPORT FOR ML PREDICTION
+from model import train_model, predict_next_mood
 
-COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-#GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-#GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 if not COHERE_API_KEY or not YOUTUBE_API_KEY:
     st.error("Missing API Keys. Please ensure your .env file contains both COHERE_API_KEY and YOUTUBE_API_KEY.")
@@ -20,7 +28,6 @@ st.set_page_config(
     page_title="NeuroSense",
     layout="centered"
 )
-
 
 # CSS styles
 st.markdown("""
@@ -38,7 +45,6 @@ st.markdown("""
     }
     .instruction-box {
         background-color: #CDC1FF;
-        
         padding: 15px;
         border-radius: 10px;
         color: #56021F;
@@ -74,7 +80,7 @@ st.markdown("""
 
 # Greeting messages 
 greeting_messages = [
-     "Hi {user_name}! You’re 100% awesome!",
+    "Hi {user_name}! You’re 100% awesome!",
     "Welcome back, {user_name}! Let's make today amazing!",
     "Hi {user_name}, let’s get this day started with some positivity!",
     "Hi {user_name}, you’re like a human version of a hug. What’s the plan for today?",
@@ -92,27 +98,18 @@ greeting_messages = [
     "Hello, {user_name}! Ready to turn this ordinary day into something extraordinary?",
     "Hi {user_name}, you’re the kind of person who makes good things happen wherever you go!"
 ]
+
 journal_prompts = [
    "Write about how you're feeling today.",
-    "Reflect on a recent decision you made.",
-    "Describe your favorite part of the day.",
-    "List three things you're grateful for.",
-    "Write about a recent challenge you overcame.",
-    "Think about something you're looking forward to.",
-    "Describe a simple moment that made you smile.",
-    "Write about a place that brings you peace.",
-    "Think about what you hope for tomorrow.",
-    "Write about something that made you feel proud.",
-    "Describe how you spent your free time today.",
-    "Reflect on a conversation that stood out to you.",
-    "Think about something you'd like to improve.",
-    "Write about something that brought you comfort today.",
-    "List a few positive things about yourself.",
-    "Reflect on a time you helped someone.",
-    "Write about a moment of kindness you experienced.",
-    "Describe a current goal you have.",
-    "Think about what you want to learn or try next.",
-    "Write about something you did today that made you feel good."
+   "Reflect on a recent decision you made.",
+   "Describe your favorite part of the day.",
+   "List three things you're grateful for.",
+   "Write about a recent challenge you overcame.",
+   "Think about something you're looking forward to.",
+   "Describe a simple moment that made you smile.",
+   "Write about a place that brings you peace.",
+   "Think about what you hope for tomorrow.",
+   "Write about something that made you feel proud."
 ]
 
 # Helper functions
@@ -156,66 +153,53 @@ with st.sidebar:
             st.markdown(f"<div class='greeting-card'>{greeting}</div>", unsafe_allow_html=True)
             st.session_state.greeting_displayed = True
 
-        # Buttons for navigation with consistent shape and styling
-        st.markdown('<div class="sidebar-buttons-container">', unsafe_allow_html=True)
+        # NAVIGATION BUTTONS
         if st.button("Share your mood here?", key="mood_button"):
             st.session_state.page = "mood"
-        if st.button(" Music Recommendation", key="music_button"):
+        if st.button("Music Recommendation", key="music_button"):
             st.session_state.page = "music"
         if st.button("Get your Journal Prompt", key="journal_button"):
             st.session_state.page = "journal"
-        st.markdown('</div>', unsafe_allow_html=True)
+        # NEW BUTTON FOR ML PREDICTION
+        if st.button("Predict Tomorrow's Mood", key="predict_button"):
+            st.session_state.page = "predict"
 
-# Main content based on selection
+# Default page
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
+# HOME PAGE
 if st.session_state.page == "home":
     st.markdown("### Welcome to NeuroSense!")
     st.markdown("<div class='instruction-box'>"
                 "<p>1. Enter your name to get started.</p>"
                 "<p>2. Choose a feature from the sidebar.</p>"
-                "<p>3. Follow the instructions to explore features like mood tracking, music recommendations, and journaling.</p>"
+                "<p>3. Enjoy mood tracking, journaling, music recommendations, and mood prediction.</p>"
                 "</div>", unsafe_allow_html=True)
 
+# MOOD PAGE
 elif st.session_state.page == "mood":
-    mood = st.text_area("How are you feeling today?(Share in paragraph)")
+    mood = st.text_area("How are you feeling today? (Share in a paragraph)")
     if st.button("Submit Mood"):
         if mood:
             ai_response = generate_ai_response(mood)
-            st.write(f" {ai_response}")
+            st.write(f"{ai_response}")
         else:
             st.warning("Please enter your mood.")
-                    # Suggest an activity from the list
+    
     suggested_advice = random.choice([
-            "Spend a few minutes today savoring a cup of tea or coffee mindfully.",
-            "Write down one thing you're proud of achieving this week.",
-            "Take a walk in nature and appreciate the beauty around you.",
-            "Practice deep breathing for a few minutes to maintain your calm.",
-            "Write a positive affirmation and repeat it to yourself throughout the day.",
-            "Reflect on one thing you love about yourself and why.",
-            "Take time to connect with a friend or family member and share your joy.",
-            "Find a quiet moment to meditate and center yourself.",
-            "Enjoy a hobby or activity that brings you joy and peace.",
-            "Take a mindful break from technology to focus on the present moment.",
-            "Engage in a creative activity, like drawing or writing, to express yourself.",
-            "Pause and appreciate something beautiful in your surroundings.",
-            "Spend time in silence, allowing your thoughts to settle and your mind to relax.",
-            "Take a moment to list your strengths and celebrate your accomplishments.",
-            "Do a small act of kindness for someone else to spread positivity.",
-            "Enjoy a peaceful moment with your favorite music or sounds of nature.",
-            "Make time for a self-care activity that nourishes your body or mind.",
-            "Take a moment to reflect on the progress you've made and how far you've come.",
-            "Write about your future goals and envision the steps to reach them.",
-            "Spend a few minutes in stillness, appreciating the present moment."
-        ])
-       
+        "Take a peaceful walk for 10 minutes.",
+        "Drink some water and stretch a bit.",
+        "Listen to calming music.",
+        "Write one thing you're grateful for."
+    ])
     st.write(f"**Suggestion:** {suggested_advice}")
 
+# MUSIC PAGE
 elif st.session_state.page == "music":
     st.markdown("### Music Recommendation")
-    st.markdown("<h5 style='text-align: center; color: gray;'>When your mood meets the perfect playlist. Enjoy the vibe!</h5>", unsafe_allow_html=True)
-    emotion = st.selectbox("Select your mood:", ["Happy", "Sad", "Relaxed","Anger","Stressed", "Energetic", "Motivated", "Calm"])
+    emotion = st.selectbox("Select your mood:", ["Happy", "Sad", "Relaxed", "Anger", "Stressed", "Energetic", "Motivated", "Calm"])
+    
     if st.button("Get Playlist"):
         playlist = fetch_youtube_playlist(emotion)
         if playlist:
@@ -224,21 +208,43 @@ elif st.session_state.page == "music":
         else:
             st.warning("No playlist found for your mood.")
 
+# JOURNAL PAGE
 elif st.session_state.page == "journal":
     if "current_prompt" not in st.session_state:
         st.session_state.current_prompt = random.choice(journal_prompts)
+    
     prompt = st.session_state.current_prompt
     st.markdown(f"### Your Journal Prompt: {prompt}")
+    
     journal_entry = st.text_area("Write your response:")
+    
     if st.button("Download Journal"):
-        if journal_entry.strip():  # Check if the journal entry is not empty
+        if journal_entry.strip():
             file_content = f"Journal Prompt: {prompt}\n\nYour Entry:\n{journal_entry}"
-        
-        # Download the journal as a text file
             st.download_button("Download as Text File", file_content, file_name="journal.txt")
-        
-        # Show success message after download and reset the journal entry
-            st.session_state.journal_entry = ""  # Clear the journal entry after download
-            st.success("Thanks for being here! Now go on and share your enlightened aura with the world. 🌟")
+            st.success("Thanks for expressing yourself! 🌟")
         else:
             st.warning("Please write your response before downloading.")
+
+# NEW: PREDICT TOMORROW’S MOOD (ML MODEL)
+elif st.session_state.page == "predict":
+    st.markdown("### Predict Tomorrow's Mood")
+
+    sleep = st.slider("Hours slept today", 0, 12, 7)
+    steps = st.number_input("Steps walked today", min_value=0, value=3000)
+    meditated = st.checkbox("Meditated today?")
+    journaled = st.checkbox("Journaled today?")
+
+    if st.button("Predict Mood"):
+        try:
+            model = train_model()
+            prediction = predict_next_mood(
+                model,
+                sleep,
+                steps,
+                int(meditated),
+                int(journaled)
+            )
+            st.success(f"Your predicted mood for tomorrow: **{prediction} / 10** 🌟")
+        except Exception as e:
+            st.error(f"Error: {e}")

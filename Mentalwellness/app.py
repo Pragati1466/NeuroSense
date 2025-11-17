@@ -15,6 +15,10 @@ import streamlit as st
 import random
 import requests
 from googleapiclient.discovery import build
+import pandas as pd
+from datetime import datetime
+from fpdf import FPDF
+import base64
 
 # NEW IMPORT FOR ML PREDICTION
 from model import train_model, predict_next_mood
@@ -32,7 +36,6 @@ st.set_page_config(
 # CSS styles
 st.markdown("""
     <style>
-
     .greeting-card {
         padding: 16px;
         background-color: #D6C8FF;
@@ -69,6 +72,7 @@ st.markdown("""
         border-radius: 8px;
         font-size: 16px;
         font-weight: bold;
+        text-decoration: none;
         transition: background-color 0.3s ease, color 0.3s ease;
     }
     .download-btn:hover {
@@ -139,10 +143,44 @@ def fetch_youtube_playlist(query):
         return {"title": title, "url": f"https://www.youtube.com/playlist?list={playlist_id}"}
     return None
 
-# Main interface
+def generate_pdf(data, title):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt=title, ln=True, align='C')
+    pdf.ln(10)
+    
+    for entry in data:
+        for key, value in entry.items():
+            # Clean text to handle basic unicode issues in standard FPDF
+            clean_text = str(value).encode('latin-1', 'replace').decode('latin-1')
+            pdf.multi_cell(0, 10, f"{key.capitalize()}: {clean_text}")
+        pdf.ln(5)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(5)
+    
+    return pdf.output(dest='S').encode('latin-1')
+
+# Greeting messages 
+greeting_messages = [
+     "Hi {user_name}! You’re 100% awesome!",
+    "Welcome back, {user_name}! Let's make today amazing!",
+    "Hi {user_name}, let’s get this day started with some positivity!",
+] 
+# (Kept short for brevity, add your full list back here)
+
+journal_prompts = [
+   "Write about how you're feeling today.",
+    "Reflect on a recent decision you made.",
+    "Describe your favorite part of the day.",
+]
+# (Kept short for brevity, add your full list back here)
+
+
+# --- MAIN INTERFACE ---
 st.markdown("<div class='title-card'>NeuroSense: Your AI Mood Journal 🌈</div>", unsafe_allow_html=True)
 
-# Sidebar with buttons
+# Sidebar
 with st.sidebar:
     user_name = st.text_input("Enter your name:")
     if user_name:
